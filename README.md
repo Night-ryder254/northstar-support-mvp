@@ -1,59 +1,247 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Northstar Support Deflection MVP
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A lightweight, self-service web dashboard that lets Northstar Retail Co.
+customers instantly check **order status** and **return/refund status**
+without opening a support ticket — reducing repetitive manual ticket volume
+for the customer support team.
 
-## About Laravel
+Built as a 5-day sprint MVP by a 4–5 person development pod, following a
+structured Agile process with a Team Charter, task-tracked Project Board,
+and a full commit/branch audit trail.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Table of Contents
+- [What this MVP does](#what-this-mvp-does)
+- [Tech Stack](#tech-stack)
+- [Architecture Overview](#architecture-overview)
+- [Project Structure](#project-structure)
+- [Setup & Installation](#setup--installation)
+- [Environment Configuration](#environment-configuration)
+- [Database](#database)
+- [Running the App](#running-the-app)
+- [Try It — Sample Data](#try-it--sample-data)
+- [API Reference](#api-reference)
+- [Testing](#testing)
+- [Git Workflow & Commit Conventions](#git-workflow--commit-conventions)
+- [Task-to-Code Mapping](#task-to-code-mapping)
+- [Known Limitations](#known-limitations)
+- [Team](#team)
+- [Documentation Index](#documentation-index)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## What this MVP does
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Customers can:
+1. **Check order status** — enter an order number and instantly see whether
+   it's processing, packed, shipped, delivered, or cancelled, plus an
+   estimated delivery date.
+2. **Check return & refund status** — enter an order number to see the
+   current return status and refund status, or view general return
+   instructions.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Both flows run through a validated JSON API backed by a real MySQL database
+— no hardcoded or mocked responses.
 
-## Laravel Sponsors
+## Tech Stack
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+| Layer | Technology | Why |
+|---|---|---|
+| Frontend | HTML, Bootstrap 5, vanilla JS (`fetch`) | Fast to build, responsive by default, no build-tooling overhead for a 5-day sprint |
+| Backend | PHP 8.2+ / Laravel 11 | Built-in migrations avoid manual database table creation; strong validation and ORM out of the box |
+| Database | MySQL 8+ | Matches assignment spec; Laravel's Eloquent ORM uses parameter binding, protecting against SQL injection |
+| Version Control | Git + GitHub | Branch-per-task workflow for a full auditable history |
+| Project Management | GitHub Projects / Trello board | Task tracking with owners, priorities, and Definitions of Done |
 
-### Premium Partners
+## Architecture Overview
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Customer (Browser)
+|
+Frontend — Blade view + Bootstrap + fetch()
+|
+Laravel Routes → Controllers (thin: validate + delegate only)
+|
+Service Layer — OrderLookupService, ReturnService (business logic)
+|
+Eloquent Models — Order, ReturnRequest
+|
+MySQL Database (orders, returns tables — built via migrations)
+|
+JSON Response → rendered back into the dashboard
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Controllers stay intentionally thin. All business logic lives in
+`app/Services/`, which keeps the code testable and reusable independent of
+the HTTP layer.
 
-## Code of Conduct
+## Project Structure
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+northstar-support-mvp/
+├── app/
+│ ├── Http/Controllers/Api/
+│ │ ├── OrderController.php
+│ │ └── ReturnController.php
+│ ├── Services/
+│ │ ├── OrderLookupService.php
+│ │ └── ReturnService.php
+│ └── Models/
+│ ├── Order.php
+│ └── ReturnRequest.php
+├── database/
+│ ├── migrations/
+│ │ ├── ..._create_orders_table.php
+│ │ └── ..._create_returns_table.php
+│ └── seeders/
+│ └── SupportDataSeeder.php
+├── resources/views/dashboard/
+│ └── index.blade.php
+├── routes/
+│ ├── api.php
+│ └── web.php
+├── tests/Feature/
+│ └── SupportApiTest.php
+├── docs/ (added in a later step)
+├── .env.example
+├── .gitignore
+└── README.md
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Setup & Installation
 
-## License
+```bash
+git clone https://github.com/<your-username>/northstar-support-mvp.git
+cd northstar-support-mvp
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Requires: PHP 8.2+, Composer 2.x, MySQL 8+ (XAMPP works fine locally).
+
+## Environment Configuration
+
+Edit `.env` and make sure these lines are **uncommented** (no leading `#`)
+and set correctly:
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=northstar_support
+DB_USERNAME=root
+DB_PASSWORD=
+
+
+> Also make sure `APP_NAME` is quoted if it contains a space, e.g.
+> `APP_NAME="North Star Support"` — an unquoted value with whitespace will
+> cause `The environment file is invalid!` errors on any artisan command.
+
+## Database
+
+Create the database (no manual phpMyAdmin table creation required —
+Laravel migrations build the schema):
+
+```bash
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS northstar_support;"
+php artisan migrate
+```
+
+Load fictional demo data:
+
+```bash
+php artisan db:seed --class=Database\\Seeders\\SupportDataSeeder
+```
+
+**Schema summary**
+
+`orders`: `id`, `order_number` (unique), `customer_name`, `status`
+(processing / packed / shipped / delivered / cancelled),
+`estimated_delivery`, timestamps.
+
+`returns`: `id`, `order_number`, `return_status` (not_requested / requested
+/ in_transit / received / rejected), `refund_status` (not_applicable /
+pending / processed), `return_reason`, timestamps.
+
+## Running the App
+
+```bash
+php artisan serve
+```
+Visit **http://127.0.0.1:8000**
+
+## Try It — Sample Data
+
+| Order Number | Order Status | Return Status | Notes |
+|---|---|---|---|
+| ORD1001 | processing | — | no return requested |
+| ORD1004 | delivered | requested / pending | wrong size |
+| ORD1005 | cancelled | rejected / not_applicable | cancelled before shipping |
+| ORD1007 | delivered | received / processed | damaged in transit |
+| ORD1010 | delivered | in_transit / pending | changed mind |
+| ORD1011 | delivered | — | no return row at all (tests default path) |
+| ORD9999 | *(doesn't exist)* | — | tests 404 handling |
+| abc123 | *(invalid format)* | — | tests 422 validation |
+
+## API Reference
+
+### `GET /api/orders/{order_number}`
+Returns order status and delivery estimate.
+- `200` — order found, returns `{ success, data: { order_number, status, estimated_delivery } }`
+- `404` — well-formed but unknown order number
+- `422` — malformed order number (must match `ORD` + 4 or more digits)
+- `500` — unexpected server/database error
+
+### `GET /api/returns/{order_number}`
+Returns return and refund status. If the order exists but has never had a
+return requested, returns sane defaults (`not_requested` / `not_applicable`)
+instead of a 404.
+
+### `GET /api/returns-instructions`
+Returns a static, ordered list of return steps. No parameters.
+
+Full request/response examples: see `docs/api-documentation.md` (added
+separately).
+
+## Testing
+
+```bash
+php artisan test
+```
+
+Covers 10 required scenarios: valid/invalid order lookup, empty input,
+malformed format, valid/invalid return lookup, no-return-row defaults,
+instructions endpoint, frontend/API integration, and whitespace input
+validation. All 10 currently pass (12/12 including default Laravel
+examples, 24 assertions).
+
+## Git Workflow & Commit Conventions
+
+- Branch naming: `feature/<description>`, `fix/<description>`, `docs/<description>`
+- Commit format: `<type>: <what changed> - <why it matters>`
+  - Example: `feat: create order lookup API - enables automated order tracking`
+- Forbidden commit messages: `wip`, `updates`, `changes`, `final`, `stuff`, `fixes`
+- Every task's branch and commit reference its Task ID from the Project Board.
+
+Full rules: see `docs/team-charter.md` (added separately).
+
+## Task-to-Code Mapping
+
+| Task ID | File(s) |
+|---|---|---|
+| TASK-01 | `database/migrations/..._create_orders_table.php` | 
+| TASK-02 | `database/migrations/..._create_returns_table.php` |
+| TASK-03 | `database/seeders/SupportDataSeeder.php` | 
+| TASK-04 | `app/Services/OrderLookupService.php` | 
+| TASK-05 | `app/Services/ReturnService.php` | 
+| TASK-06 | `app/Http/Controllers/Api/OrderController.php` |
+| TASK-07 | `app/Http/Controllers/Api/ReturnController.php` |
+| TASK-08 | `resources/views/dashboard/index.blade.php` | 
+| TASK-09 | `tests/Feature/SupportApiTest.php` |
+
+## Known Limitations
+
+- No customer authentication — order number alone grants lookup access.
+- `returns.order_number` is a soft reference to `orders.order_number`, not
+  a formal foreign key (deliberate simplification for the 5-day timeline).
+- Stock availability (optional third category) was not built — priority
+  was given to making order status and returns fully reliable first.
