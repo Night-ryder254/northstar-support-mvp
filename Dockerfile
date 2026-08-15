@@ -12,6 +12,10 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
+# .env is intentionally gitignored, so it doesn't exist in this container
+# yet — build it here from .env.example, which IS committed.
+RUN cp .env.example .env
+
 EXPOSE 10000
 
 CMD php artisan key:generate --force && \
