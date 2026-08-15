@@ -11,3 +11,10 @@ Route::get('/orders/{orderNumber}', [OrderController::class, 'show']);
 Route::get('/returns/{orderNumber}', [ReturnController::class, 'show']);
 Route::get('/returns-instructions', [ReturnController::class, 'instructions']);
 Route::get('/stock/{sku}', [StockController::class, 'show']);
+use App\Http\Controllers\Api\FaqController;
+
+// TASK-08 — FAQ / self-service help API
+// Owner: Thando
+
+Route::get('/faqs', [FaqController::class, 'index']);
+Route::get('/faqs/{id}', [FaqController::class, 'show']);
