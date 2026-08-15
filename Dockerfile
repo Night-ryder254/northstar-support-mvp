@@ -12,9 +12,13 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
-# .env is intentionally gitignored, so it doesn't exist in this container
-# yet — build it here from .env.example, which IS committed.
+# .env is gitignored, so build a base file from the committed example
 RUN cp .env.example .env
+
+# Override DB settings for this container ONLY — .env.example stays
+# MySQL for local XAMPP development, unaffected by this.
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=/app/database/database.sqlite
 
 EXPOSE 10000
 
