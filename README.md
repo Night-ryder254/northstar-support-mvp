@@ -1,30 +1,35 @@
 # Northstar Support Deflection MVP
 
 A lightweight, self-service web dashboard that lets Northstar Retail Co.
-customers instantly check **order status** and **return/refund status**
-without opening a support ticket — reducing repetitive manual ticket volume
-for the customer support team.
+customers instantly check **order status**, **return/refund status**,
+**stock availability**, and browse a **searchable FAQ library** — without
+opening a support ticket.
 
 Built as a 5-day sprint MVP by a 4–5 person development pod, following a
 structured Agile process with a Team Charter, task-tracked Project Board,
 and a full commit/branch audit trail.
 
+**🔗 Live demo:** https://northstar-support-mvp-3uy0.onrender.com
+
 ---
 
 ## Table of Contents
 - [What this MVP does](#what-this-mvp-does)
+- [Live Demo](#live-demo)
 - [Tech Stack](#tech-stack)
 - [Architecture Overview](#architecture-overview)
 - [Project Structure](#project-structure)
-- [Setup & Installation](#setup--installation)
+- [Setup & Installation (local)](#setup--installation-local)
 - [Environment Configuration](#environment-configuration)
 - [Database](#database)
-- [Running the App](#running-the-app)
+- [Running the App Locally](#running-the-app-locally)
 - [Try It — Sample Data](#try-it--sample-data)
 - [API Reference](#api-reference)
 - [Testing](#testing)
+- [Deployment](#deployment)
 - [Git Workflow & Commit Conventions](#git-workflow--commit-conventions)
 - [Task-to-Code Mapping](#task-to-code-mapping)
+- [Audit Trail](#audit-trail)
 - [Known Limitations](#known-limitations)
 - [Team](#team)
 - [Documentation Index](#documentation-index)
@@ -40,36 +45,53 @@ Customers can:
 2. **Check return & refund status** — enter an order number to see the
    current return status and refund status, or view general return
    instructions.
-3. **Check stock availability** — enter an SKUnumber to see the
-   current availability status of the item
-   
+3. **Check stock availability** — enter a SKU and see every size/color
+   variant, current stock quantity, or restock date if unavailable.
+4. **Browse FAQs** — search and filter a self-service help library by
+   category (delivery, returns, refunds, orders) without contacting
+   support at all.
 
-all flows run through a validated JSON API backed by a real MySQL database
-— no hardcoded or mocked responses.
+All four flows run through a validated JSON API backed by a real
+database — no hardcoded or mocked responses.
+
+## Live Demo
+
+**https://northstar-support-mvp-3uy0.onrender.com**
+
+No login required. Try the sample data below directly on the live site.
+
+> **Note:** the public demo runs on Render's free tier with SQLite as a
+> deployment-environment substitution (Render has no free managed MySQL).
+> The application code, migrations, and local development setup are
+> unchanged and MySQL-based — see [Deployment](#deployment) and
+> `docs/go-live-readiness.md` for details. The free tier also spins down
+> after ~15 minutes of inactivity; the first request after idle time may
+> take 30–60 seconds to respond while it wakes up.
 
 ## Tech Stack
 
 | Layer | Technology | Why |
 |---|---|---|
-| Frontend | HTML, Bootstrap 5, vanilla JS (`fetch`) | Fast to build, responsive by default, no build-tooling overhead for a 5-day sprint |
-| Backend | PHP 8.2+ / Laravel 11 | Built-in migrations avoid manual database table creation; strong validation and ORM out of the box |
-| Database | MySQL 8+ | Matches assignment spec; Laravel's Eloquent ORM uses parameter binding, protecting against SQL injection |
+| Frontend | Blade, Tailwind CSS, vanilla JS (`fetch`) | Fast to build, responsive by default, no build-pipeline dependency |
+| Backend | PHP 8.2+ / Laravel 11–12 | Built-in migrations avoid manual database table creation; strong validation and ORM out of the box |
+| Database | MySQL 8+ (local/production) / SQLite (public demo only) | Matches assignment spec; Eloquent uses parameter binding, protecting against SQL injection |
 | Version Control | Git + GitHub | Branch-per-task workflow for a full auditable history |
+| Hosting (demo) | Render (Docker) | Free public hosting for live, no-login demo access |
 | Project Management | GitHub Projects / Trello board | Task tracking with owners, priorities, and Definitions of Done |
 
 ## Architecture Overview
 
 Customer (Browser)
 |
-Frontend — Blade view + Bootstrap + fetch()
+Frontend — Blade views + Tailwind + fetch()
 |
 Laravel Routes → Controllers (thin: validate + delegate only)
 |
-Service Layer — OrderLookupService, ReturnService (business logic)
+Service Layer — OrderLookupService, ReturnService, StockAvailabilityService, FaqService
 |
-Eloquent Models — Order, ReturnRequest
+Eloquent Models — Order, ReturnRequest, Product, Faq
 |
-MySQL Database (orders, returns,stock,faq tables — built via migrations)
+Database (orders, returns, products, faqs tables — built via migrations)
 |
 JSON Response → rendered back into the dashboard
 
@@ -80,8 +102,48 @@ the HTTP layer.
 
 ## Project Structure
 
-northstar-support-mvp/ ├── app/ │ ├── Http/Controllers/Api/ │ │ ├── OrderController.php │ │ ├── ReturnController.php │ │ ├── StockController.php │ │ └── FaqController.php │ ├── Services/ │ │ ├── OrderLookupService.php │ │ ├── ReturnService.php │ │ └── FaqService.php │ └── Models/ │ ├── Order.php │ ├── ReturnRequest.php │ └── Faq.php ├── database/ │ ├── migrations/ │ │ ├── ..._create_orders_table.php │ │ ├── ..._create_returns_table.php │ │ ├── 2025_01_01_000003_create_products_table.php │ │ └── 2025_08_14_000001_create_faqs_table.php │ ├── factories/ │ │ └── FaqFactory.php │ └── seeders/ │ ├── SupportDataSeeder.php │ └── FaqSeeder.php ├── resources/views/dashboard/ │ └── index.blade.php ├── routes/ │ ├── api.php │ └── web.php ├── tests/Feature/ │ ├── SupportApiTest.php │ └── FaqTest.php ├── docs/ (added in a later step) ├── .env.example ├── .gitignore └── README.md
-## Setup & Installation
+northstar-support-mvp/
+├── app/
+│ ├── Http/Controllers/Api/
+│ │ ├── OrderController.php
+│ │ ├── ReturnController.php
+│ │ ├── StockController.php
+│ │ └── FaqController.php
+│ ├── Services/
+│ │ ├── OrderLookupService.php
+│ │ ├── ReturnService.php
+│ │ ├── StockAvailabilityService.php
+│ │ └── FaqService.php
+│ └── Models/
+│ ├── Order.php
+│ ├── ReturnRequest.php
+│ ├── Product.php
+│ └── Faq.php
+├── database/
+│ ├── migrations/
+│ │ ├── ..._create_orders_table.php
+│ │ ├── ..._create_returns_table.php
+│ │ ├── ..._create_products_table.php
+│ │ └── ..._create_faqs_table.php
+│ └── seeders/
+│ ├── SupportDataSeeder.php
+│ ├── ProductStockSeeder.php
+│ └── FaqSeeder.php
+├── resources/views/dashboard/
+│ └── index.blade.php
+├── routes/
+│ ├── api.php
+│ └── web.php
+├── tests/Feature/
+│ ├── SupportApiTest.php
+│ └── StockApiTest.php
+├── Dockerfile (Render deployment only)
+├── .env.example
+├── .gitignore
+└── README.md
+
+
+## Setup & Installation (local)
 
 ```bash
 git clone https://github.com/<your-username>/northstar-support-mvp.git
@@ -106,9 +168,9 @@ DB_USERNAME=root
 DB_PASSWORD=
 
 
-> Also make sure `APP_NAME` is quoted if it contains a space, e.g.
-> `APP_NAME="North Star Support"` — an unquoted value with whitespace will
-> cause `The environment file is invalid!` errors on any artisan command.
+> Also ensure `APP_NAME` is quoted if it contains a space, e.g.
+> `APP_NAME="North Star Support"` — an unquoted value with whitespace
+> causes `The environment file is invalid!` errors on any artisan command.
 
 ## Database
 
@@ -124,21 +186,18 @@ Load fictional demo data:
 
 ```bash
 php artisan db:seed --class=Database\\Seeders\\SupportDataSeeder
+php artisan db:seed --class=Database\\Seeders\\ProductStockSeeder
+php artisan db:seed --class=Database\\Seeders\\FaqSeeder
 ```
 
 **Schema summary**
 
-`orders`: `id`, `order_number` (unique), `customer_name`, `status`
-(processing / packed / shipped / delivered / cancelled),
-`estimated_delivery`, timestamps.
+- `orders`: `id`, `order_number` (unique), `customer_name`, `status`, `estimated_delivery`, timestamps.
+- `returns`: `id`, `order_number`, `return_status`, `refund_status`, `return_reason`, timestamps.
+- `products`: `id`, `sku`, `product_name`, `size`, `color`, `stock_quantity`, `restock_date`, timestamps.
+- `faqs`: `id`, `question`, `answer`, `category`, `active`, timestamps.
 
-`returns`: `id`, `order_number`, `return_status` (not_requested / requested
-/ in_transit / received / rejected), `refund_status` (not_applicable /
-pending / processed), `return_reason`, timestamps.
-`faqs`: `id`, `question`, `answer`, `category `(returns / delivery / refunds / orders), active (boolean), timestamps.
-`products`:`product_name`, `sku`, `variants array` of { size, color, in_stock, stock_quantity, restock_date }.
-
-## Running the App
+## Running the App Locally
 
 ```bash
 php artisan serve
@@ -158,36 +217,26 @@ Visit **http://127.0.0.1:8000**
 | ORD9999 | *(doesn't exist)* | — | tests 404 handling |
 | abc123 | *(invalid format)* | — | tests 422 validation |
 
-Stock: enter a SKU such as SKU1001 — see the stock seeder/factory for the full list of seeded SKUs once confirmed.
+| SKU | Product | Notes |
+|---|---|---|
+| SKU1001 | Northstar Classic Tee | 4 sizes, mix of in/out of stock |
+| SKU1002 | Northstar Running Shoes | 3 sizes, mix of in/out of stock |
+| SKU1004 | Northstar Water Bottle | fully out of stock, has restock date |
 
-FAQs: 10 seeded via FaqSeeder, spread across four categories — delivery (3), returns (3), orders (3), refunds (1). Search by keyword (e.g. "refund", "cancel", "international") or filter by category in the dashboard.
+FAQs are searchable by keyword and filterable by category (`delivery`, `returns`, `refunds`, `orders`) directly on the dashboard.
 
 ## API Reference
 
-### `GET /api/orders/{order_number}`
-Returns order status and delivery estimate.
-- `200` — order found, returns `{ success, data: { order_number, status, estimated_delivery } }`
-- `404` — well-formed but unknown order number
-- `422` — malformed order number (must match `ORD` + 4 or more digits)
-- `500` — unexpected server/database error
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/orders/{order_number}` | Order status + delivery estimate |
+| GET | `/api/returns/{order_number}` | Return + refund status |
+| GET | `/api/returns-instructions` | Static return instructions |
+| GET | `/api/stock/{sku}` | Stock levels across all size/color variants |
+| GET | `/api/faqs?category=&search=` | List FAQs, optionally filtered |
+| GET | `/api/faqs/{id}` | Single FAQ by id |
 
-### `GET /api/returns/{order_number}`
-Returns return and refund status. If the order exists but has never had a
-return requested, returns sane defaults (`not_requested` / `not_applicable`)
-instead of a 404.
-
-### `GET /api/returns-instructions`
-Returns a static, ordered list of return steps. No parameters.
-
-### `GET /api/stock/{sku}`
-
-Returns stock variants for a SKU.
-
-200 — returns { success, data: { product_name, sku, variants: [...] } }
-404 — unknown SKU (assumed — confirm actual status code with StockController)
-
-Full request/response examples: see `docs/api-documentation.md` (added
-separately).
+Full request/response contracts: see `docs/api-documentation.md` (added separately).
 
 ## Testing
 
@@ -195,11 +244,26 @@ separately).
 php artisan test
 ```
 
-Covers 10 required scenarios: valid/invalid order lookup, empty input,
-malformed format, valid/invalid return lookup, no-return-row defaults,
-instructions endpoint, frontend/API integration, and whitespace input
-validation. All 10 currently pass (12/12 including default Laravel
-examples, 24 assertions).
+Covers 16 scenarios across all four features — valid/invalid lookups,
+empty input, malformed formats, default-value paths, and frontend/API
+integration. Current result: **16 passed, 33 assertions**.
+
+## Deployment
+
+The live demo is deployed on **Render** using a `Dockerfile` (Render has
+no native PHP runtime picker, only Docker or Node auto-detection).
+
+Key points:
+- The Docker build installs PHP 8.2, Composer, and `pdo_sqlite`.
+- `.env` is generated at build time from the committed `.env.example`
+  (the real `.env` is gitignored and never enters the container).
+- DB settings are rewritten to SQLite **inside the container only** —
+  `.env.example` itself stays MySQL-configured for local/production use.
+- Migrations and all three seeders run automatically on every deploy.
+
+See `docs/go-live-readiness.md` for the full production-readiness
+checklist, including what changes would be needed for a real MySQL-backed
+production deployment.
 
 ## Git Workflow & Commit Conventions
 
@@ -213,22 +277,44 @@ Full rules: see `docs/team-charter.md` (added separately).
 
 ## Task-to-Code Mapping
 
-| Task ID | File(s) |
+| Task ID | File(s) | Owner |
 |---|---|---|
-| TASK-01 | `database/migrations/..._create_orders_table.php` | 
-| TASK-02 | `database/migrations/..._create_returns_table.php` |
-| TASK-03 | `database/seeders/SupportDataSeeder.php` | 
-| TASK-04 | `app/Services/OrderLookupService.php` | 
-| TASK-05 | `app/Services/ReturnService.php` | 
-| TASK-06 | `app/Http/Controllers/Api/OrderController.php` |
-| TASK-07 | `app/Http/Controllers/Api/ReturnController.php` |
-| TASK-08 | `resources/views/dashboard/index.blade.php` | 
-| TASK-09 | `tests/Feature/SupportApiTest.php` |
+| TASK-01 | `database/migrations/..._create_orders_table.php` | Nigel (Database) |
+| TASK-02 | `database/migrations/..._create_returns_table.php` | Nigel (Database) |
+| TASK-03 | `database/seeders/SupportDataSeeder.php` | Nigel (Database) |
+| TASK-04 | `app/Services/OrderLookupService.php` | Nigel (Backend) |
+| TASK-05 | `app/Services/ReturnService.php` | Nigel (Backend) |
+| TASK-06 | `app/Http/Controllers/Api/OrderController.php` | Nigel (Backend) |
+| TASK-07 | `app/Http/Controllers/Api/ReturnController.php` | Nigel (Backend) |
+| TASK-08 | `resources/views/dashboard/index.blade.php` (v1) | Sheryl (Frontend) |
+| TASK-09 | `tests/Feature/SupportApiTest.php` | Nigel (Testing/QA) |
+| TASK-16 | `database/migrations/..._create_products_table.php` | Nigel (Database) |
+| TASK-17 | `app/Models/Product.php`, `database/seeders/ProductStockSeeder.php` | Nigel (Database) |
+| TASK-18 | `app/Services/StockAvailabilityService.php` | Nigel (Backend) |
+| TASK-19 | `app/Http/Controllers/Api/StockController.php` | Nigel (Backend) |
+| TASK-20 | `resources/views/dashboard/index.blade.php` (stock section) | Sheryl (Frontend) |
+| TASK-21 | `tests/Feature/StockApiTest.php` | Nigel (Testing/QA) |
+| TASK-22 | `app/Models/Faq.php`, `Services/FaqService.php`, `Controllers/Api/FaqController.php`, `seeders/FaqSeeder.php`, dashboard redesign | Thando |
+| TASK-24 | `Dockerfile` | Nigel (DevOps) |
+
 
 ## Known Limitations
 
-- No customer authentication — order number alone grants lookup access.
-- `returns.order_number` is a soft reference to `orders.order_number`, not
-  a formal foreign key (deliberate simplification for the 5-day timeline).
-- Stock availability (optional third category) was not built — priority
-  was given to making order status and returns fully reliable first.
+- No customer authentication — order number/SKU alone grants lookup access.
+- `returns.order_number` and `products.sku` are soft references, not
+  formal foreign keys (deliberate simplification for the 5-day timeline).
+- Public demo uses SQLite due to Render's free-tier constraints; local
+  and intended production setup are MySQL, unchanged.
+
+Full detail: see `docs/go-live-readiness.md`.
+
+## Team
+
+| Member | Role |
+|---|---|
+| Sheryl | Coordination + Frontend |
+| Nigel | Backend/API |
+| Nigel | Database |
+| Nigel/Thando | Testing/QA + Documentation |
+| Nigel | Integration/DevOps/QA |
+| Thando | FAQ self-service feature |
