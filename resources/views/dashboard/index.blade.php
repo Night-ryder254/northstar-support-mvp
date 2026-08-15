@@ -52,6 +52,7 @@
                 <a href="#track" class="transition hover:text-navy-950">Track order</a>
                 <a href="#stock" class="transition hover:text-navy-950">Stock</a>
                 <a href="#returns" class="transition hover:text-navy-950">Returns &amp; refunds</a>
+                <a href="#faqs" class="transition hover:text-navy-950">FAQs</a>
                 <a href="#help" class="transition hover:text-navy-950">How it works</a>
             </nav>
             <a href="mailto:support@northstar.example"
@@ -70,7 +71,7 @@
                     Know where it is.<br>Get it sorted.
                 </h1>
                 <p class="mt-5 max-w-md text-base leading-relaxed text-slate-200">
-                    Look up any order, check stock on an item, or see where a return and refund stand — all in one place, updated in real time.
+                    Look up any order, check stock on an item, see where a return and refund stand, or search our FAQs — all in one place, updated in real time.
                 </p>
             </div>
 
@@ -93,7 +94,7 @@
     </section>
 
     <!-- Quick-action tile grid: every lookup gets equal weight -->
-    <section class="relative mx-auto -mt-20 max-w-6xl px-6 pb-20">
+    <section class="relative mx-auto -mt-20 max-w-6xl px-6 pb-14">
         <div class="grid gap-6 lg:grid-cols-2">
 
             <!-- Track order -->
@@ -191,6 +192,36 @@
                 <div id="instructionsResult" class="mt-4"></div>
             </div>
 
+        </div>
+    </section>
+
+    <!-- FAQs -->
+    <section id="faqs" class="mx-auto max-w-6xl px-6 pb-20">
+        <div class="rounded-2xl border border-navy-950/5 bg-white p-6 shadow-sm sm:p-8">
+            <div class="flex items-center gap-3">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-signal-100 text-signal-600">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><path d="M12 17h.01"/></svg>
+                </span>
+                <h2 class="font-display text-lg font-semibold">Frequently asked questions</h2>
+            </div>
+            <p class="mt-2 text-sm text-slate-600">Search or browse by topic before reaching out.</p>
+
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                <input
+                    type="text"
+                    id="faqSearchInput"
+                    placeholder="Search FAQs…"
+                    class="w-full rounded-lg border border-slate-200 bg-mist-50 px-4 py-2.5 text-sm text-navy-950 placeholder:text-slate-400 focus:border-navy-600 focus:outline-none focus:ring-2 focus:ring-navy-600/20"
+                >
+                <button id="faqSearchBtn"
+                    class="shrink-0 rounded-lg bg-signal-500 px-5 py-2.5 font-display text-sm font-semibold text-white transition hover:bg-signal-600 focus:outline-none focus:ring-2 focus:ring-signal-500/40">
+                    Search
+                </button>
+            </div>
+
+            <div id="faqCategoryPills" class="mt-4 flex flex-wrap gap-2"></div>
+
+            <div id="faqResults" class="mt-6 divide-y divide-mist-200"></div>
         </div>
     </section>
 
@@ -403,6 +434,86 @@ document.getElementById('showInstructionsBtn').addEventListener('click', async (
         div.innerHTML = alertHtml('danger', 'Could not reach the server. Please try again.');
     }
 });
+
+// ---- FAQs ---------------------------------------------------------------------
+// Wired to GET /api/faqs?category=&search=, response: { success, data: [{ id, question, answer, category }] }
+
+const FAQ_CATEGORIES = ['returns', 'delivery', 'refunds', 'orders'];
+let activeFaqCategory = '';
+
+function renderFaqCategoryPills() {
+    const pillsDiv = document.getElementById('faqCategoryPills');
+    const categories = [{ key: '', label: 'All' }, ...FAQ_CATEGORIES.map(c => ({ key: c, label: c }))];
+    pillsDiv.innerHTML = categories.map(cat => {
+        const isActive = activeFaqCategory === cat.key;
+        const tone = isActive ? 'bg-navy-950 text-white' : 'bg-mist-100 text-slate-600 hover:bg-mist-200';
+        return `<button type="button" data-category="${cat.key}" class="rounded-full px-3 py-1.5 font-display text-xs font-semibold capitalize transition ${tone}">${cat.label}</button>`;
+    }).join('');
+}
+
+function faqItemHtml(faq) {
+    return `
+        <div class="py-3">
+            <button type="button" class="faq-toggle flex w-full items-center justify-between gap-4 text-left" data-target="faq-answer-${faq.id}">
+                <span class="font-display text-sm font-semibold text-navy-950">${faq.question}</span>
+                <svg class="faq-chevron h-4 w-4 shrink-0 text-slate-400 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="faq-answer-${faq.id}" class="mt-2 hidden text-sm leading-relaxed text-slate-600">
+                ${faq.answer}
+            </div>
+        </div>`;
+}
+
+async function loadFaqs(searchTerm) {
+    const resultsDiv = document.getElementById('faqResults');
+    resultsDiv.innerHTML = '<div class="py-3 text-sm text-slate-500">Loading…</div>';
+    try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.set('search', searchTerm);
+        if (activeFaqCategory) params.set('category', activeFaqCategory);
+        const query = params.toString();
+
+        const res = await fetch(`/api/faqs${query ? '?' + query : ''}`);
+        const body = await res.json();
+        if (!body.success) {
+            resultsDiv.innerHTML = alertHtml('danger', body.error);
+            return;
+        }
+        if (!body.data.length) {
+            resultsDiv.innerHTML = '<div class="py-3 text-sm text-slate-500">No FAQs match your search.</div>';
+            return;
+        }
+        resultsDiv.innerHTML = body.data.map(faqItemHtml).join('');
+    } catch (e) {
+        resultsDiv.innerHTML = alertHtml('danger', 'Could not reach the server. Please try again.');
+    }
+}
+
+document.getElementById('faqCategoryPills').addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-category]');
+    if (!btn) return;
+    activeFaqCategory = btn.dataset.category;
+    renderFaqCategoryPills();
+    loadFaqs(document.getElementById('faqSearchInput').value.trim());
+});
+
+document.getElementById('faqResults').addEventListener('click', (e) => {
+    const btn = e.target.closest('.faq-toggle');
+    if (!btn) return;
+    document.getElementById(btn.dataset.target).classList.toggle('hidden');
+    btn.querySelector('.faq-chevron').classList.toggle('rotate-180');
+});
+
+document.getElementById('faqSearchBtn').addEventListener('click', () => {
+    loadFaqs(document.getElementById('faqSearchInput').value.trim());
+});
+document.getElementById('faqSearchInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') loadFaqs(document.getElementById('faqSearchInput').value.trim());
+});
+
+// Initial load
+renderFaqCategoryPills();
+loadFaqs();
 </script>
 
 </body>
