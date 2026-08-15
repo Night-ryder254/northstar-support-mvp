@@ -40,8 +40,11 @@ Customers can:
 2. **Check return & refund status** — enter an order number to see the
    current return status and refund status, or view general return
    instructions.
+3. **Check stock availability** — enter an SKUnumber to see the
+   current availability status of the item
+   
 
-Both flows run through a validated JSON API backed by a real MySQL database
+all flows run through a validated JSON API backed by a real MySQL database
 — no hardcoded or mocked responses.
 
 ## Tech Stack
@@ -66,7 +69,7 @@ Service Layer — OrderLookupService, ReturnService (business logic)
 |
 Eloquent Models — Order, ReturnRequest
 |
-MySQL Database (orders, returns tables — built via migrations)
+MySQL Database (orders, returns,stock,faq tables — built via migrations)
 |
 JSON Response → rendered back into the dashboard
 
@@ -77,36 +80,7 @@ the HTTP layer.
 
 ## Project Structure
 
-northstar-support-mvp/
-├── app/
-│ ├── Http/Controllers/Api/
-│ │ ├── OrderController.php
-│ │ └── ReturnController.php
-│ ├── Services/
-│ │ ├── OrderLookupService.php
-│ │ └── ReturnService.php
-│ └── Models/
-│ ├── Order.php
-│ └── ReturnRequest.php
-├── database/
-│ ├── migrations/
-│ │ ├── ..._create_orders_table.php
-│ │ └── ..._create_returns_table.php
-│ └── seeders/
-│ └── SupportDataSeeder.php
-├── resources/views/dashboard/
-│ └── index.blade.php
-├── routes/
-│ ├── api.php
-│ └── web.php
-├── tests/Feature/
-│ └── SupportApiTest.php
-├── docs/ (added in a later step)
-├── .env.example
-├── .gitignore
-└── README.md
-
-
+northstar-support-mvp/ ├── app/ │ ├── Http/Controllers/Api/ │ │ ├── OrderController.php │ │ ├── ReturnController.php │ │ ├── StockController.php │ │ └── FaqController.php │ ├── Services/ │ │ ├── OrderLookupService.php │ │ ├── ReturnService.php │ │ └── FaqService.php │ └── Models/ │ ├── Order.php │ ├── ReturnRequest.php │ └── Faq.php ├── database/ │ ├── migrations/ │ │ ├── ..._create_orders_table.php │ │ ├── ..._create_returns_table.php │ │ ├── 2025_01_01_000003_create_products_table.php │ │ └── 2025_08_14_000001_create_faqs_table.php │ ├── factories/ │ │ └── FaqFactory.php │ └── seeders/ │ ├── SupportDataSeeder.php │ └── FaqSeeder.php ├── resources/views/dashboard/ │ └── index.blade.php ├── routes/ │ ├── api.php │ └── web.php ├── tests/Feature/ │ ├── SupportApiTest.php │ └── FaqTest.php ├── docs/ (added in a later step) ├── .env.example ├── .gitignore └── README.md
 ## Setup & Installation
 
 ```bash
@@ -161,6 +135,8 @@ php artisan db:seed --class=Database\\Seeders\\SupportDataSeeder
 `returns`: `id`, `order_number`, `return_status` (not_requested / requested
 / in_transit / received / rejected), `refund_status` (not_applicable /
 pending / processed), `return_reason`, timestamps.
+`faqs`: `id`, `question`, `answer`, `category `(returns / delivery / refunds / orders), active (boolean), timestamps.
+`products`:`product_name`, `sku`, `variants array` of { size, color, in_stock, stock_quantity, restock_date }.
 
 ## Running the App
 
@@ -182,6 +158,10 @@ Visit **http://127.0.0.1:8000**
 | ORD9999 | *(doesn't exist)* | — | tests 404 handling |
 | abc123 | *(invalid format)* | — | tests 422 validation |
 
+Stock: enter a SKU such as SKU1001 — see the stock seeder/factory for the full list of seeded SKUs once confirmed.
+
+FAQs: 10 seeded via FaqSeeder, spread across four categories — delivery (3), returns (3), orders (3), refunds (1). Search by keyword (e.g. "refund", "cancel", "international") or filter by category in the dashboard.
+
 ## API Reference
 
 ### `GET /api/orders/{order_number}`
@@ -198,6 +178,13 @@ instead of a 404.
 
 ### `GET /api/returns-instructions`
 Returns a static, ordered list of return steps. No parameters.
+
+### `GET /api/stock/{sku}`
+
+Returns stock variants for a SKU.
+
+200 — returns { success, data: { product_name, sku, variants: [...] } }
+404 — unknown SKU (assumed — confirm actual status code with StockController)
 
 Full request/response examples: see `docs/api-documentation.md` (added
 separately).
