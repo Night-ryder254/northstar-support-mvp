@@ -1,0 +1,48 @@
+9954ae1 | 2026-08-16 | Nigel Matekwa | Merge pull request #9 from Night-ryder254/docs/assignment-evidence
+0b72f0e | 2026-08-16 | Thandopatel | Add files via upload
+f33efd9 | 2026-08-16 | Nigel Matekwa | Merge pull request #8 from Night-ryder254/docs/team-charter
+98bb170 | 2026-08-16 | Thandopatel | Add files via upload
+7c28ecb | 2026-08-15 | Night-ryder254 | docs: update README with live demo link, FAQ and stock features, deployment notes, and audit trail index - reflects current project state (TASK-13)
+dd6a3d6 | 2026-08-15 | Nigel Matekwa | Merge pull request #7 from Night-ryder254/feature/faq-ui
+c114168 | 2026-08-15 | Night-ryder254 | fix: rewrite .env directly to sqlite during docker build and force session driver to file - env var precedence was silently losing to cached mysql defaults, breaking session queries (TASK-24)
+1c76e9f | 2026-08-15 | sherilkerubo | docs: update README with project overview and setup instructions
+b138302 | 2026-08-15 | Night-ryder254 | docs: add .env.example with required configuration variables - enables Docker builds and teammate onboarding (TASK-11)
+3089519 | 2026-08-15 | Night-ryder254 | fix: override DB connection to sqlite via Docker ENV - keeps .env.example as the real MySQL template while making the container self-contained (TASK-24)
+48c6b11 | 2026-08-15 | Night-ryder254 | fix: generate .env from .env.example during docker build - artisan needs a physical env file that git deliberately excludes (TASK-24)
+81d4ddc | 2026-08-15 | Night-ryder254 | chore: add Dockerfile to run app via Docker on Render - Render has no native PHP runtime picker (TASK-24)
+7f218d7 | 2026-08-15 | Night-ryder254 | chore: exclude local env variants from version control - prevents accidental credential leaks (TASK-23)
+5b92b89 | 2026-08-15 | Nigel Matekwa | Merge pull request #6 from Night-ryder254/feature/faq-ui
+1222bd8 | 2026-08-15 | sherilkerubo | Merge branch 'main' into feature/faq-ui adding the FAQ section
+140032a | 2026-08-15 | sherilkerubo | feat(ui): add self-service FAQ section to dashboard (TASK-20)
+6601786 | 2026-08-15 | sherilkerubo | Merge branch 'feature/faq-ui' added an FAQ section
+9c3f303 | 2026-08-15 | sherilkerubo | feat: add Frequently asked questions section to dashboard - lets customers ask frequently asked questions without a ticket (TASK-20)
+f171af6 | 2026-08-15 | sherilkerubo | feat: add FAQ search and browse section to dashboard - lets customers self-serve answers before opening a ticket
+7654cf1 | 2026-08-15 | Nigel Matekwa | Merge pull request #5 from Night-ryder254/feature/faq-api
+3949341 | 2026-08-15 | Thando | feat: add FaqSeeder and wire into DatabaseSeeder
+e1862ce | 2026-08-15 | Nigel Matekwa | Merge pull request #3 from Night-ryder254/feature/ui-redesign
+af31cd1 | 2026-08-15 | Nigel Matekwa | Merge pull request #4 from Night-ryder254/feature/faq-api
+15cb95e | 2026-08-15 | Thando | test: add FAQ API feature tests
+f0c1518 | 2026-08-15 | Thando | feat: add FAQ API endpoints
+1c24255 | 2026-08-15 | Thando | feat: add FAQ service
+fa3bf7e | 2026-08-15 | Thando | feat: add FAQ model and factory
+dfeb4da | 2026-08-15 | Thando | feat: add FAQ database migration
+94d37dc | 2026-08-15 | sherilkerubo | style(ui): update index.blade.php with modern frontend components
+5cae477 | 2026-08-14 | Nigel Matekwa | Merge pull request #1 from Night-ryder254/feature/stock-ui
+44f52cc | 2026-08-14 | sherilkerubo | feat: add stock availability section to dashboard - lets customers check size and color variant stock without a ticket (TASK-20)
+a388897 | 2026-08-14 | Night-ryder254 | test: add feature tests for stock availability endpoint - covers valid, unknown, and malformed SKU scenarios (TASK-21)
+634ff94 | 2026-08-14 | Night-ryder254 | feat: create stock availability API endpoint - returns variant stock levels with validation and error handling (TASK-19)
+eef84b3 | 2026-08-14 | Night-ryder254 | feat: add stock availability service - returns all size and color variants for a given SKU (TASK-18)
+719fff6 | 2026-08-14 | Night-ryder254 | feat: add Product model and seed fictional stock data - covers multiple SKUs, sizes, and out-of-stock variants (TASK-17)
+9b6d9b6 | 2026-08-14 | Night-ryder254 | feat: create products table migration - establishes schema for stock availability lookups (TASK-16)
+f58e551 | 2026-08-14 | Night-ryder254 | docs: Write detailed README - documents setup, architecture, API and testing for onboarding and evaluation (TASK-13)
+81da618 | 2026-08-13 | Night-ryder254 | docs: add .env.example with required database variables - enables teammates to configure their local environment (TASK-01)
+2b9a4c3 | 2026-08-13 | Night-ryder254 | test: add feature tests for order and return endpoints - covers 10 required scenarios including edge cases (TASK-09)
+97c7135 | 2026-08-13 | Night-ryder254 | feat: build customer support dashboard - lets customers self-serve order and return status without a ticket (TASK-08)
+e7585a2 | 2026-08-13 | Night-ryder254 | feat: register order and return API routes - exposes endpoints and wires api.php into the app bootstrap (TASK-06, TASK-07)
+83caadd | 2026-08-13 | Night-ryder254 | feat: create return and refund API endpoint - returns status and instructions with validation (TASK-07)
+c0354c0 | 2026-08-13 | Night-ryder254 | feat: create order lookup API endpoint - returns order status with input validation and error handling (TASK-06)
+f912cea | 2026-08-13 | Night-ryder254 | feat: add order and return models plus lookup services - separates business logic from controllers for testability (TASK-04, TASK-05)
+cef4a4f | 2026-08-13 | Night-ryder254 | feat: seed fictional order and return test data - enables demo and manual testing without real customer data (TASK-03)
+29b7ef6 | 2026-08-13 | Night-ryder254 | feat: create returns table migration - enables return and refund status tracking (TASK-02)
+c89e570 | 2026-08-13 | Night-ryder254 | feat: create orders table migration - establishes core schema for order status lookups (TASK-01)
+4f6c392 | 2026-08-13 | Night-ryder254 | chore: Initialize Laravel project skeleton - establishes repo foundation for all sprint work

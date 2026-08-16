@@ -1,0 +1,57 @@
+=== TASK-01 ===
+81da618 | 2026-08-13 | Night-ryder254 | docs: add .env.example with required database variables - enables teammates to configure their local environment (TASK-01)
+c89e570 | 2026-08-13 | Night-ryder254 | feat: create orders table migration - establishes core schema for order status lookups (TASK-01)
+=== TASK-02 ===
+29b7ef6 | 2026-08-13 | Night-ryder254 | feat: create returns table migration - enables return and refund status tracking (TASK-02)
+=== TASK-03 ===
+cef4a4f | 2026-08-13 | Night-ryder254 | feat: seed fictional order and return test data - enables demo and manual testing without real customer data (TASK-03)
+=== TASK-04 ===
+f912cea | 2026-08-13 | Night-ryder254 | feat: add order and return models plus lookup services - separates business logic from controllers for testability (TASK-04, TASK-05)
+=== TASK-05 ===
+f912cea | 2026-08-13 | Night-ryder254 | feat: add order and return models plus lookup services - separates business logic from controllers for testability (TASK-04, TASK-05)
+=== TASK-06 ===
+e7585a2 | 2026-08-13 | Night-ryder254 | feat: register order and return API routes - exposes endpoints and wires api.php into the app bootstrap (TASK-06, TASK-07)
+c0354c0 | 2026-08-13 | Night-ryder254 | feat: create order lookup API endpoint - returns order status with input validation and error handling (TASK-06)
+=== TASK-07 ===
+e7585a2 | 2026-08-13 | Night-ryder254 | feat: register order and return API routes - exposes endpoints and wires api.php into the app bootstrap (TASK-06, TASK-07)
+83caadd | 2026-08-13 | Night-ryder254 | feat: create return and refund API endpoint - returns status and instructions with validation (TASK-07)
+=== TASK-08 ===
+97c7135 | 2026-08-13 | Night-ryder254 | feat: build customer support dashboard - lets customers self-serve order and return status without a ticket (TASK-08)
+=== TASK-09 ===
+2b9a4c3 | 2026-08-13 | Night-ryder254 | test: add feature tests for order and return endpoints - covers 10 required scenarios including edge cases (TASK-09)
+=== TASK-10 ===
+
+=== TASK-11 ===
+b138302 | 2026-08-15 | Night-ryder254 | docs: add .env.example with required configuration variables - enables Docker builds and teammate onboarding (TASK-11)
+=== TASK-12 ===
+
+=== TASK-13 ===
+7c28ecb | 2026-08-15 | Night-ryder254 | docs: update README with live demo link, FAQ and stock features, deployment notes, and audit trail index - reflects current project state (TASK-13)
+f58e551 | 2026-08-14 | Night-ryder254 | docs: Write detailed README - documents setup, architecture, API and testing for onboarding and evaluation (TASK-13)
+=== TASK-14 ===
+
+=== TASK-15 ===
+
+=== TASK-16 ===
+9b6d9b6 | 2026-08-14 | Night-ryder254 | feat: create products table migration - establishes schema for stock availability lookups (TASK-16)
+=== TASK-17 ===
+719fff6 | 2026-08-14 | Night-ryder254 | feat: add Product model and seed fictional stock data - covers multiple SKUs, sizes, and out-of-stock variants (TASK-17)
+=== TASK-18 ===
+eef84b3 | 2026-08-14 | Night-ryder254 | feat: add stock availability service - returns all size and color variants for a given SKU (TASK-18)
+=== TASK-19 ===
+634ff94 | 2026-08-14 | Night-ryder254 | feat: create stock availability API endpoint - returns variant stock levels with validation and error handling (TASK-19)
+=== TASK-20 ===
+140032a | 2026-08-15 | sherilkerubo | feat(ui): add self-service FAQ section to dashboard (TASK-20)
+9c3f303 | 2026-08-15 | sherilkerubo | feat: add Frequently asked questions section to dashboard - lets customers ask frequently asked questions without a ticket (TASK-20)
+44f52cc | 2026-08-14 | sherilkerubo | feat: add stock availability section to dashboard - lets customers check size and color variant stock without a ticket (TASK-20)
+=== TASK-21 ===
+a388897 | 2026-08-14 | Night-ryder254 | test: add feature tests for stock availability endpoint - covers valid, unknown, and malformed SKU scenarios (TASK-21)
+=== TASK-22 ===
+
+=== TASK-23 ===
+7f218d7 | 2026-08-15 | Night-ryder254 | chore: exclude local env variants from version control - prevents accidental credential leaks (TASK-23)
+=== TASK-24 ===
+c114168 | 2026-08-15 | Night-ryder254 | fix: rewrite .env directly to sqlite during docker build and force session driver to file - env var precedence was silently losing to cached mysql defaults, breaking session queries (TASK-24)
+3089519 | 2026-08-15 | Night-ryder254 | fix: override DB connection to sqlite via Docker ENV - keeps .env.example as the real MySQL template while making the container self-contained (TASK-24)
+48c6b11 | 2026-08-15 | Night-ryder254 | fix: generate .env from .env.example during docker build - artisan needs a physical env file that git deliberately excludes (TASK-24)
+81d4ddc | 2026-08-15 | Night-ryder254 | chore: add Dockerfile to run app via Docker on Render - Render has no native PHP runtime picker (TASK-24)
