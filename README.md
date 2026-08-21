@@ -60,14 +60,6 @@ database — no hardcoded or mocked responses.
 
 No login required. Try the sample data below directly on the live site.
 
-> **Note:** the public demo runs on Render's free tier with SQLite as a
-> deployment-environment substitution (Render has no free managed MySQL).
-> The application code, migrations, and local development setup are
-> unchanged and MySQL-based — see [Deployment](#deployment) and
-> `docs/go-live-readiness.md` for details. The free tier also spins down
-> after ~15 minutes of inactivity; the first request after idle time may
-> take 30–60 seconds to respond while it wakes up.
-
 ## Tech Stack
 
 | Layer | Technology | Why |
